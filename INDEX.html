@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal CyberSec // Simulador Hacker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #050505;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .crt {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #00ff6633;
+            box-shadow: inset 0 0 10px rgba(0, 255, 102, 0.2);
+            padding: 20px;
+            border-radius: 4px;
+            background: rgba(0, 20, 5, 0.95);
+        }
+
+        /* Efeito de linhas CRT antigas */
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            border-bottom: 1px dashed #00ff6666;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+
+        .status-blink {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        #terminal-output {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding-right: 5px;
+        }
+
+        #terminal-output::-webkit-scrollbar {
+            width: 6px;
+        }
+        #terminal-output::-webkit-scrollbar-thumb {
+            background: #00ff6644;
+        }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prompt {
+            color: #00ff66;
+            font-weight: bold;
+        }
+
+        #command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .system-msg {
+            color: #00bfff;
+        }
+
+        .error-msg {
+            color: #ff3333;
+        }
+
+        .success-msg {
+            color: #00ff66;
+        }
+
+        .warning-msg {
+            color: #ffcc00;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="crt">
+        <header>
+            <div>SYSTEM_OS v4.0.2 // SECURE_SHELL</div>
+            <div>STATUS: <span class="status-blink" style="color: #00ff66;">CONECTADO</span></div>
+        </header>
+
+        <div id="terminal-output">
+            <div class="system-msg">Bem-vindo ao Terminal Central de Simulação.</div>
+            <div class="system-msg">Digite <strong>help</strong> para ver a lista de comandos disponíveis.</div>
+            <br>
+        </div>
+
+        <div class="input-line">
+            <span class="prompt">root@sec-core:~$</span>
+            <input type="text" id="command-input" autofocus autocomplete="off" spellcheck="false">
+        </div>
+    </div>
+
+    <script>
+        const output = document.getElementById('terminal-output');
+        const input = document.getElementById('command-input');
+
+        const commandsHelp = [
+            "help          - Mostra esta lista de comandos",
+            "scan          - Executa varredura de portas na rede local",
+            "matrix        - Ativa o fluxo de dados da matriz",
+            "brute         - Tenta força bruta em um alvo simulado",
+            "decrypt       - Inicia descriptografia de arquivos secretos",
+            "clear         - Limpa a tela do terminal",
+            "whoami        - Exibe informações do usuário atual",
+            "exit          - Desconecta da sessão atual"
+        ];
+
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const cmd = input.value.trim().toLowerCase();
+                appendUserCommand(input.value);
+                input.value = '';
+                processCommand(cmd);
+                output.scrollTop = output.scrollHeight;
+            }
+        });
+
+        function appendUserCommand(text) {
+            const div = document.createElement('div');
+            div.innerHTML = `<span class="prompt">root@sec-core:~$</span> ${escapeHtml(text)}`;
+            output.appendChild(div);
+        }
+
+        function appendOutput(htmlClass, text) {
+            const div = document.createElement('div');
+            div.className = htmlClass;
+            div.innerHTML = text;
+            output.appendChild(div);
+        }
+
+        function processCommand(cmd) {
+            if (cmd === '') return;
+
+            switch(cmd) {
+                case 'help':
+                    appendOutput('system-msg', commandsHelp.join('<br>'));
+                    break;
+                case 'whoami':
+                    appendOutput('', 'Usuário: root (Privilégios Administrativos Totais)');
+                    break;
+                case 'clear':
+                    output.innerHTML = '';
+                    break;
+                case 'exit':
+                    appendOutput('error-msg', 'Erro: Sessão protegida por criptografia quântica. Desconexão negada.');
+                    break;
+                case 'scan':
+                    simulateScan();
+                    break;
+                case 'brute':
+                    simulateBruteForce();
+                    break;
+                case 'decrypt':
+                    simulateDecrypt();
+                    break;
+                case 'matrix':
+                    simulateMatrix();
+                    break;
+                default:
+                    appendOutput('error-msg', `Comando não reconhecido: '${escapeHtml(cmd)}'. Digite 'help' para ajuda.`);
+            }
+        }
+
+        function simulateScan() {
+            appendOutput('warning-msg', '[*] Iniciando varredura de portas TCP em 192.168.1.1...');
+            setTimeout(() => appendOutput('', 'Porta 22 (SSH)   - [ABRE]'), 400);
+            setTimeout(() => appendOutput('', 'Porta 80 (HTTP)  - [ABRE]'), 900);
+            setTimeout(() => appendOutput('', 'Porta 443 (HTTPS)- [ABRE]'), 1300);
+            setTimeout(() => appendOutput('success-msg', '[+] Varredura concluída. 3 serviços vulneráveis encontrados.'), 1800);
+        }
+
+        function simulateBruteForce() {
+            appendOutput('warning-msg', '[*] Acoplando dicionário de senhas padrão...');
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts += Math.floor(Math.random() * 350) + 100;
+                if (attempts < 2500) {
+                    appendOutput('', `Testando combinações... Tentativa #${attempts}`);
+                } else {
+                    clearInterval(interval);
+                    appendOutput('success-msg', '[+] ACESSO PERMITIDO! Senha encontrada: "admin123"');
+                }
+            }, 300);
+        }
+
+        function simulateDecrypt() {
+            appendOutput('warning-msg', '[*] Quebrando chave AES-256 de /secret/data.enc...');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                appendOutput('', `Progresso de descriptografia: ${progress}%`);
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    appendOutput('success-msg', '[+] Arquivo descriptografado com sucesso! Conteúdo: "Acesso total concedido ao mainframe principal."');
+                }
+            }, 400);
+        }
+
+        function simulateMatrix() {
+            appendOutput('system-msg', '[*] Fluxo de dados ativado. Pressione qualquer tecla para retornar.');
+            let count = 0;
+            const matrixInterval = setInterval(() => {
+                let randomString = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                appendOutput('success-msg', randomString);
+                count++;
+                if (count > 15) {
+                    clearInterval(matrixInterval);
+                }
+            }, 100);
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
